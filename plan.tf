@@ -42,3 +42,11 @@ module "nodes" {
   subnet_id                = module.networking.subnet_id
   security_group_id        = module.security_group.id
 }
+
+module "certificates" {
+  source = "./certificates"
+
+  cluster_ips = module.nodes.cluster_ips
+  ssh_key     = module.nodes.ssh_key
+  lb_hostname = aws_lb.lb.dns_name
+}
