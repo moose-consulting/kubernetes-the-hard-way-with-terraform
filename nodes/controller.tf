@@ -20,4 +20,17 @@ resource "aws_instance" "controller" {
   root_block_device {
     volume_size = 200
   }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = aws_instance.controller[count.index].public_ip
+    private_key = tls_private_key.access.private_key_pem
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo hostnamectl set-hostname controller-${count.index}",
+    ]
+  }
 }

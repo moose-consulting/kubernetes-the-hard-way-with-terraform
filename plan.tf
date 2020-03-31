@@ -43,8 +43,8 @@ module "nodes" {
   security_group_id        = module.security_group.id
 }
 
-module "certificates" {
-  source = "./certificates"
+module "configuration" {
+  source = "./cluster_configuration"
 
   cluster_ips               = module.nodes.cluster_ips
   ssh_key                   = module.nodes.ssh_key

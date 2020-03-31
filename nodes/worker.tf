@@ -21,4 +21,17 @@ resource "aws_instance" "worker" {
   }
 
   user_data = "#!/bin/bash\nexport POD_CIDR=10.200.${count.index}.0/24"
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = aws_instance.worker[count.index].public_ip
+    private_key = tls_private_key.access.private_key_pem
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo hostnamectl set-hostname worker-${count.index}",
+    ]
+  }
 }
