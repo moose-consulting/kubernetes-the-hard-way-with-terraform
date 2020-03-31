@@ -46,7 +46,7 @@ module "nodes" {
 module "certificates" {
   source = "./certificates"
 
-  cluster_ips = module.nodes.cluster_ips
-  ssh_key     = module.nodes.ssh_key
-  lb_hostname = aws_lb.lb.dns_name
+  cluster_ips               = module.nodes.cluster_ips
+  ssh_key                   = module.nodes.ssh_key
+  KUBERNETES_PUBLIC_ADDRESS = aws_lb.lb.dns_name
 }

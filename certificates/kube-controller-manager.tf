@@ -24,3 +24,41 @@ resource "tls_locally_signed_cert" "kube-controller-manager" {
   allowed_uses          = ["cert_signing", "key_encipherment", "server_auth", "client_auth"]
   validity_period_hours = 8760
 }
+
+module "kube-controller-manager-config" {
+  source = "../kubeconfig"
+
+  name            = "kube-controller-manager"
+  username        = "system:kube-controller-manager"
+  CLUSTER_ADDRESS = "127.0.0.1"
+  ca              = null_resource.ca-cert.triggers.content
+  cert            = [tls_locally_signed_cert.kube-controller-manager.cert_pem]
+  key             = [tls_private_key.kube-controller-manager.private_key_pem]
+}
+
+resource "null_resource" "kube-controller-manager-config-deployment" {
+  count = length(var.cluster_ips.controllers.public)
+
+  triggers = {
+    key = module.kube-controller-manager-config.kubeconfig[0]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = var.cluster_ips.controllers.public[count.index]
+    private_key = var.ssh_key
+  }
+
+  provisioner "file" {
+    content     = module.kube-controller-manager-config.kubeconfig[0]
+    destination = "/home/ubuntu/kube-controller-manager.kubeconfig"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /var/lib/kubernetes",
+      "sudo cp /home/ubuntu/kube-controller-manager.kubeconfig /var/lib/kubernetes/kube-controller-manager.kubeconfig"
+    ]
+  }
+}

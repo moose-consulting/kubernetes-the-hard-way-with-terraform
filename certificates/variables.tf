@@ -4,4 +4,4 @@ variable "cluster_ips" {
 
 variable "ssh_key" {}
 
-variable "lb_hostname" {}
+variable "KUBERNETES_PUBLIC_ADDRESS" {}

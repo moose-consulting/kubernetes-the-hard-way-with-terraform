@@ -85,3 +85,41 @@ resource "null_resource" "worker-cert" {
     ]
   }
 }
+
+module "worker-config" {
+  source = "../kubeconfig"
+
+  name            = "worker"
+  username        = "system:node:worker"
+  CLUSTER_ADDRESS = var.KUBERNETES_PUBLIC_ADDRESS
+  ca              = null_resource.ca-cert.triggers.content
+  cert            = tls_locally_signed_cert.worker.*.cert_pem
+  key             = tls_private_key.worker.*.private_key_pem
+}
+
+resource "null_resource" "worker-config-deployment" {
+  count = length(var.cluster_ips.workers.public)
+
+  triggers = {
+    key = module.worker-config.kubeconfig[count.index]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = var.cluster_ips.workers.public[count.index]
+    private_key = var.ssh_key
+  }
+
+  provisioner "file" {
+    content     = module.worker-config.kubeconfig[count.index]
+    destination = "/home/ubuntu/worker-${count.index}.kubeconfig"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /var/lib/kubelet/",
+      "sudo cp /home/ubuntu/worker-${count.index}.kubeconfig /var/lib/kubelet/kubeconfig",
+    ]
+  }
+}

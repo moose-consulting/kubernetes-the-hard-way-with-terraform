@@ -7,7 +7,7 @@ resource "tls_cert_request" "kubernetes" {
   dns_names = concat(var.cluster_ips.controllers.private, [
     "10.32.0.1",
     "127.0.0.1",
-    var.lb_hostname,
+    var.KUBERNETES_PUBLIC_ADDRESS,
     "kubernetes",
     "kubernetes.default",
     "kubernetes.default.svc",
