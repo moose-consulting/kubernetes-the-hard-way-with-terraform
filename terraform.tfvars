@@ -1,6 +1,5 @@
 region                   = "us-east-2"
 zone                     = "us-east-2a"
-stub_zone                = "us-east-2b"
 n_workers                = "1"
 n_controllers            = "1"
 worker_instance_type     = "t2.small"

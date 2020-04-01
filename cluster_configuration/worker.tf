@@ -8,7 +8,9 @@ resource "tls_private_key" "worker" {
 resource "tls_cert_request" "worker" {
   count = length(var.cluster_ips.workers.private)
 
-  dns_names       = ["worker-${count.index}", var.cluster_ips.workers.private[count.index], var.cluster_ips.workers.public[count.index]]
+  dns_names    = ["worker-${count.index}"]
+  ip_addresses = [var.cluster_ips.workers.private[count.index], var.cluster_ips.workers.public[count.index]]
+
   key_algorithm   = "RSA"
   private_key_pem = tls_private_key.worker[count.index].private_key_pem
   subject {

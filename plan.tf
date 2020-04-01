@@ -5,9 +5,8 @@ provider "aws" {
 module "networking" {
   source = "./vpc"
 
-  region    = var.region
-  zone      = var.zone
-  stub_zone = var.stub_zone
+  region = var.region
+  zone   = var.zone
 }
 
 module "security_group" {
@@ -19,9 +18,7 @@ module "security_group" {
 resource "aws_lb" "lb" {
   name               = "kubernetes-the-hard-way-${terraform.workspace}"
   internal           = false
-  load_balancer_type = "application"
-  security_groups    = [module.security_group.id]
-  subnets            = [module.networking.subnet_id, module.networking.stub_id]
+  load_balancer_type = "network"
   ip_address_type    = "ipv4"
 
   tags = {
@@ -29,6 +26,58 @@ resource "aws_lb" "lb" {
     ManagedBy   = "Terraform"
     Environment = terraform.workspace
   }
+
+  subnet_mapping {
+    subnet_id     = module.networking.subnet_id
+    allocation_id = aws_eip.lb.id
+  }
+}
+
+resource "aws_lb_target_group" "cluster" {
+  name     = "kubernetes-the-hard-way-${terraform.workspace}"
+  port     = 6443
+  protocol = "TCP"
+  vpc_id   = module.networking.vpc_id
+
+  tags = {
+    Name        = "kubernetes-the-hard-way-${terraform.workspace}"
+    ManagedBy   = "Terraform"
+    Environment = terraform.workspace
+  }
+
+  health_check {
+    protocol            = "HTTPS"
+    path                = "/healthz"
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+}
+
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.lb.arn
+  port              = "443"
+  protocol          = "TCP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.cluster.arn
+  }
+}
+
+resource "aws_eip" "lb" {
+  tags = {
+    Name        = "kubernetes-the-hard-way-${terraform.workspace}"
+    ManagedBy   = "Terraform"
+    Environment = terraform.workspace
+  }
+}
+
+resource "aws_lb_target_group_attachment" "controller" {
+  count = length(module.nodes.controller_ids)
+
+  target_group_arn = aws_lb_target_group.cluster.arn
+  target_id        = module.nodes.controller_ids[count.index]
+  port             = 6443
 }
 
 module "nodes" {
@@ -48,5 +97,5 @@ module "configuration" {
 
   cluster_ips               = module.nodes.cluster_ips
   ssh_key                   = module.nodes.ssh_key
-  KUBERNETES_PUBLIC_ADDRESS = aws_lb.lb.dns_name
+  KUBERNETES_PUBLIC_ADDRESS = aws_eip.lb.public_ip
 }

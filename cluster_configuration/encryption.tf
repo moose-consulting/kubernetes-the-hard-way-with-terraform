@@ -7,7 +7,7 @@ resource "random_password" "encryption_key" {
 data "template_file" "encryption-config" {
   template = "${file("${path.root}/templates/encryption-config.yaml")}"
   vars = {
-    ENCRYPTION_KEY = random_password.encryption_key.result
+    ENCRYPTION_KEY = base64encode(random_password.encryption_key.result)
   }
 }
 

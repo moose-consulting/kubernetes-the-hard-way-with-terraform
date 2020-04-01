@@ -33,7 +33,7 @@ resource "null_resource" "controller-hostname" {
 data "template_file" "etcd-systemd" {
   count = length(var.cluster_ips.controllers.public)
 
-  template = "${file("${path.root}/templates/etcd.systemd")}"
+  template = "${file("${path.root}/templates/etcd.service")}"
   vars = {
     ETCD_NAME       = "controller-${count.index}"
     INTERNAL_IP     = var.cluster_ips.controllers.private[count.index]
@@ -67,12 +67,12 @@ resource "null_resource" "start-etcd" {
 
   provisioner "file" {
     content     = data.template_file.etcd-systemd[count.index].rendered
-    destination = "/home/ubuntu/etcd.systemd"
+    destination = "/home/ubuntu/etcd.service"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "sudo cp /home/ubuntu/etcd.systemd /etc/systemd/system/etcd.service",
+      "sudo cp /home/ubuntu/etcd.service /etc/systemd/system/etcd.service",
       "sudo systemctl daemon-reload",
       "sudo systemctl stop etcd",
       "sudo systemctl enable etcd",

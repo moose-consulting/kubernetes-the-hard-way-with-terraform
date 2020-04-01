@@ -4,16 +4,19 @@ resource "tls_private_key" "kubernetes" {
 }
 
 resource "tls_cert_request" "kubernetes" {
-  dns_names = concat(var.cluster_ips.controllers.private, [
-    "10.32.0.1",
-    "127.0.0.1",
+  ip_addresses = concat(var.cluster_ips.controllers.private, [
     var.KUBERNETES_PUBLIC_ADDRESS,
+    "10.32.0.1",
+    "127.0.0.1"
+  ])
+
+  dns_names = [
     "kubernetes",
     "kubernetes.default",
     "kubernetes.default.svc",
     "kubernetes.default.svc.cluster",
     "kubernetes.svc.cluster.local"
-  ])
+  ]
 
   key_algorithm   = "RSA"
   private_key_pem = tls_private_key.kubernetes.private_key_pem

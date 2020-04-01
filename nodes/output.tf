@@ -15,3 +15,7 @@ output "ssh_key" {
   sensitive = true
   value     = tls_private_key.access.private_key_pem
 }
+
+output "controller_ids" {
+  value = aws_instance.controller.*.id
+}

@@ -62,3 +62,78 @@ resource "null_resource" "kube-scheduler-config-deployment" {
     ]
   }
 }
+
+data "template_file" "kube-scheduler-yaml" {
+  template = "${file("${path.root}/templates/kube-scheduler.yaml")}"
+  vars = {
+  }
+}
+
+
+data "template_file" "kube-scheduler-systemd" {
+  template = "${file("${path.root}/templates/kube-scheduler.service")}"
+  vars = {
+  }
+}
+
+resource "null_resource" "install-kube-scheduler" {
+  count = length(var.cluster_ips.controllers.public)
+
+  triggers = {
+    key = var.cluster_ips.controllers.public[count.index]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = var.cluster_ips.controllers.public[count.index]
+    private_key = var.ssh_key
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "wget https://storage.googleapis.com/kubernetes-release/release/v1.15.3/bin/linux/amd64/kube-scheduler",
+      "chmod +x kube-scheduler",
+      "sudo mv kube-scheduler /usr/local/bin/",
+    ]
+  }
+}
+
+resource "null_resource" "configure-kube-scheduler" {
+  count = length(var.cluster_ips.controllers.public)
+
+  depends_on = [
+    null_resource.kube-scheduler-config-deployment
+  ]
+
+  triggers = {
+    systemd               = data.template_file.kube-scheduler-systemd.rendered
+    yaml                  = data.template_file.kube-scheduler-yaml.rendered
+    kube-scheduler-config = module.kube-scheduler-config.kubeconfig[0]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = var.cluster_ips.controllers.public[count.index]
+    private_key = var.ssh_key
+  }
+
+  provisioner "file" {
+    content     = data.template_file.kube-scheduler-systemd.rendered
+    destination = "/home/ubuntu/kube-scheduler.service"
+  }
+
+  provisioner "file" {
+    content     = data.template_file.kube-scheduler-yaml.rendered
+    destination = "/home/ubuntu/kube-scheduler.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /etc/kubernetes/config",
+      "sudo cp /home/ubuntu/kube-scheduler.service /etc/systemd/system/kube-scheduler.service",
+      "sudo cp /home/ubuntu/kube-scheduler.yaml /etc/kubernetes/config/kube-scheduler.yaml",
+    ]
+  }
+}

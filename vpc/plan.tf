@@ -21,19 +21,6 @@ resource "aws_subnet" "cluster" {
   }
 }
 
-resource "aws_subnet" "stub" {
-  vpc_id                  = aws_vpc.cluster.id
-  cidr_block              = "10.240.1.0/24"
-  availability_zone       = var.stub_zone
-  map_public_ip_on_launch = "false"
-
-  tags = {
-    Name        = "kubernetes-the-hard-way-${terraform.workspace}-stub"
-    ManagedBy   = "Terraform"
-    Environment = terraform.workspace
-  }
-}
-
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.cluster.id
 

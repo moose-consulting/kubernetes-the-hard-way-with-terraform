@@ -62,3 +62,69 @@ resource "null_resource" "kube-controller-manager-config-deployment" {
     ]
   }
 }
+
+data "template_file" "kube-controller-manager-systemd" {
+  template = "${file("${path.root}/templates/kube-controller-manager.service")}"
+  vars = {
+  }
+}
+
+resource "null_resource" "install-kube-controller-manager" {
+  count = length(var.cluster_ips.controllers.public)
+
+  triggers = {
+    key = var.cluster_ips.controllers.public[count.index]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = var.cluster_ips.controllers.public[count.index]
+    private_key = var.ssh_key
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "wget https://storage.googleapis.com/kubernetes-release/release/v1.15.3/bin/linux/amd64/kube-controller-manager",
+      "chmod +x kube-controller-manager",
+      "sudo mv kube-controller-manager /usr/local/bin/",
+    ]
+  }
+}
+
+resource "null_resource" "configure-kube-controller-manager" {
+  count = length(var.cluster_ips.controllers.public)
+
+  depends_on = [
+    null_resource.controller-ca-cert,
+    null_resource.controller-ca-key,
+    null_resource.service-account-key,
+    null_resource.kube-controller-manager-config-deployment
+  ]
+
+  triggers = {
+    ca-cert                        = tls_self_signed_cert.ca.cert_pem
+    ca-key                         = tls_private_key.ca.private_key_pem
+    systemd                        = data.template_file.kube-controller-manager-systemd.rendered
+    service-account-key            = tls_private_key.service-account.private_key_pem
+    kube-controller-manager-config = module.kube-controller-manager-config.kubeconfig[0]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = var.cluster_ips.controllers.public[count.index]
+    private_key = var.ssh_key
+  }
+
+  provisioner "file" {
+    content     = data.template_file.kube-controller-manager-systemd.rendered
+    destination = "/home/ubuntu/kube-controller-manager.service"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo cp /home/ubuntu/kube-controller-manager.service /etc/systemd/system/kube-controller-manager.service",
+    ]
+  }
+}
