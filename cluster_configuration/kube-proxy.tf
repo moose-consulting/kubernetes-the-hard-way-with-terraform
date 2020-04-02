@@ -62,3 +62,49 @@ resource "null_resource" "kube-proxy-config-deployment" {
     ]
   }
 }
+
+
+data "template_file" "kube-proxy-config-yaml" {
+  template = "${file("${path.root}/templates/kube-proxy-config.yaml")}"
+  vars = {
+  }
+}
+
+data "template_file" "kube-proxy-service" {
+  template = "${file("${path.root}/templates/kube-proxy.service")}"
+  vars = {
+  }
+}
+
+resource "null_resource" "kube-proxy-config" {
+  count = length(var.cluster_ips.workers.public)
+
+  triggers = {
+    kube-proxy-config-yaml = data.template_file.kube-proxy-config-yaml.rendered
+    kube-proxy-service     = data.template_file.kube-proxy-service.rendered
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = var.cluster_ips.workers.public[count.index]
+    private_key = var.ssh_key
+  }
+
+  provisioner "file" {
+    content     = data.template_file.kube-proxy-config-yaml.rendered
+    destination = "/home/ubuntu/kube-proxy-config.yaml"
+  }
+
+  provisioner "file" {
+    content     = data.template_file.kube-proxy-service.rendered
+    destination = "/home/ubuntu/kube-proxy.service"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo cp /home/ubuntu/kube-proxy-config.yaml /var/lib/kube-proxy/kube-proxy-config.yaml",
+      "sudo cp /home/ubuntu/kube-proxy.service /etc/systemd/system/kube-proxy.service",
+    ]
+  }
+}

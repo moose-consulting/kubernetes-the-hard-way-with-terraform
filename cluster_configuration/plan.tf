@@ -58,3 +58,40 @@ resource "null_resource" "start-kube-services" {
     ]
   }
 }
+
+resource "null_resource" "start-worker-services" {
+  count = length(var.cluster_ips.workers.public)
+
+  depends_on = [
+    null_resource.networking,
+    null_resource.containerd,
+    null_resource.kube-proxy-config,
+    null_resource.kubelet-config,
+    null_resource.worker-config-deployment,
+  ]
+
+  triggers = {
+    networking     = null_resource.networking[count.index].id,
+    containerd     = null_resource.containerd[count.index].id,
+    kube-proxy     = null_resource.kube-proxy-config[count.index].id,
+    kubelet        = null_resource.kubelet-config[count.index].id,
+    kubelet-config = null_resource.worker-config-deployment[count.index].id
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = var.cluster_ips.workers.public[count.index]
+    private_key = var.ssh_key
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo systemctl daemon-reload",
+      "sudo systemctl stop containerd kubelet kube-proxy",
+      "sudo systemctl enable containerd kubelet kube-proxy",
+      "sudo systemctl start containerd kubelet kube-proxy",
+      "sleep 10"
+    ]
+  }
+}

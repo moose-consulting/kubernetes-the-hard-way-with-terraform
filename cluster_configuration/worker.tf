@@ -14,7 +14,7 @@ resource "tls_cert_request" "worker" {
   key_algorithm   = "RSA"
   private_key_pem = tls_private_key.worker[count.index].private_key_pem
   subject {
-    common_name         = "system:nodes:worker-${count.index}"
+    common_name         = "system:node:worker-${count.index}"
     organization        = "system:nodes"
     organizational_unit = "Kubernetes The Hard Way"
     locality            = "Chicago"

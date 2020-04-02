@@ -1,7 +1,7 @@
 provider "kubernetes" {
   load_config_file = "false"
 
-  host = "https://${var.KUBERNETES_PUBLIC_ADDRESS}"
+  host = "https://${var.KUBERNETES_PUBLIC_ADDRESS}:6443"
 
   cluster_ca_certificate = tls_self_signed_cert.ca.cert_pem
   client_key             = tls_private_key.admin.private_key_pem
