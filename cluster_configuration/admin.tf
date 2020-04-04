@@ -30,7 +30,7 @@ module "admin-config" {
 
   name            = "admin"
   username        = "admin"
-  CLUSTER_ADDRESS = "127.0.0.1"
+  CLUSTER_ADDRESS = var.KUBERNETES_PUBLIC_ADDRESS
   ca              = null_resource.ca-cert.triggers.content
   cert            = [tls_locally_signed_cert.admin.cert_pem]
   key             = [tls_private_key.admin.private_key_pem]
@@ -54,4 +54,9 @@ resource "null_resource" "admin-config-deployment" {
     content     = module.admin-config.kubeconfig[0]
     destination = "/home/ubuntu/admin.kubeconfig"
   }
+}
+
+resource "local_file" "admin-config" {
+  content  = module.admin-config.kubeconfig[0]
+  filename = "${path.root}/admin.kubeconfig"
 }
