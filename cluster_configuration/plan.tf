@@ -59,6 +59,18 @@ resource "null_resource" "start-kube-services" {
   }
 }
 
+resource "null_resource" "wait-kube-apiserver" {
+  depends_on = [
+    null_resource.start-kube-services,
+    local_file.ca-cert
+  ]
+
+  provisioner "local-exec" {
+    working_dir = path.root
+    command     = "until $(curl --cacert output/ca.pem --output /dev/null --silent --fail https://${var.KUBERNETES_PUBLIC_ADDRESS}:6443/healthz); do printf '.'; sleep 5; done"
+  }
+}
+
 resource "null_resource" "start-worker-services" {
   count = length(var.cluster_ips.workers.public)
 

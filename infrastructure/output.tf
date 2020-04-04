@@ -16,6 +16,6 @@ output "ssh_key" {
   value     = tls_private_key.access.private_key_pem
 }
 
-output "controller_ids" {
-  value = aws_instance.controller.*.id
+output "KUBERNETES_PUBLIC_ADDRESS" {
+  value = aws_eip.lb.public_ip
 }

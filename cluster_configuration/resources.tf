@@ -9,7 +9,9 @@ provider "kubernetes" {
 }
 
 resource "kubernetes_cluster_role" "kube-apiserver-to-kubelet" {
-  depends_on = [null_resource.start-kube-services]
+  depends_on = [
+    null_resource.wait-kube-apiserver
+  ]
 
   metadata {
     annotations = {
