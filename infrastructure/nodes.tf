@@ -99,6 +99,7 @@ resource "null_resource" "bootstrap_worker" {
       "chmod +x crictl kubectl kube-proxy kubelet runc",
       "sudo mv crictl kubectl kube-proxy kubelet runc /usr/local/bin/",
       "sudo mv containerd/bin/* /bin/",
+      "sudo modprobe br_netfilter"
     ]
   }
 }

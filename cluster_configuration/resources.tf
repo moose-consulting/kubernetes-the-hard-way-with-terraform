@@ -55,3 +55,12 @@ resource "kubernetes_cluster_role_binding" "system-kube-apiserver" {
     api_group = "rbac.authorization.k8s.io"
   }
 }
+
+resource "null_resource" "coredns" {
+  depends_on = [kubernetes_cluster_role_binding.system-kube-apiserver]
+
+  provisioner "local-exec" {
+    working_dir = path.root
+    command     = "kubectl --kubeconfig admin.kubeconfig apply -f https://storage.googleapis.com/kubernetes-the-hard-way/coredns.yaml"
+  }
+}
