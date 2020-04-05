@@ -28,10 +28,9 @@ resource "tls_locally_signed_cert" "kube-scheduler" {
 module "kube-scheduler-config" {
   source = "../kubeconfig"
 
-  name            = "kube-scheduler"
   username        = "system:kube-scheduler"
   CLUSTER_ADDRESS = "127.0.0.1"
-  ca              = null_resource.ca-cert.triggers.content
+  ca              = tls_self_signed_cert.ca.cert_pem
   cert            = [tls_locally_signed_cert.kube-scheduler.cert_pem]
   key             = [tls_private_key.kube-scheduler.private_key_pem]
 }

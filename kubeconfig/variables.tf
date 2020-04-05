@@ -1,5 +1,3 @@
-variable "name" {}
-
 variable "username" {}
 
 variable "CLUSTER_ADDRESS" {}

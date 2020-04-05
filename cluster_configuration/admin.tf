@@ -28,10 +28,9 @@ resource "tls_locally_signed_cert" "admin" {
 module "admin-config" {
   source = "../kubeconfig"
 
-  name            = "admin"
   username        = "admin"
   CLUSTER_ADDRESS = var.KUBERNETES_PUBLIC_ADDRESS
-  ca              = null_resource.ca-cert.triggers.content
+  ca              = tls_self_signed_cert.ca.cert_pem
   cert            = [tls_locally_signed_cert.admin.cert_pem]
   key             = [tls_private_key.admin.private_key_pem]
 }

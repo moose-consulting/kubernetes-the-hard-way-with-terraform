@@ -28,14 +28,6 @@ resource "local_file" "ca-cert" {
   filename          = "${path.root}/output/ca.pem"
 }
 
-resource "null_resource" "ca-cert" {
-  depends_on = [local_file.ca-cert]
-  triggers = {
-    // Hack to defer file reading until after local_exec runs.
-    content = file(replace("${path.root}/output/ca.pem*${local_file.ca-cert.id}", "/[*].*/", ""))
-  }
-}
-
 resource "null_resource" "controller-ca-key" {
   count = length(var.cluster_ips.controllers.public)
 

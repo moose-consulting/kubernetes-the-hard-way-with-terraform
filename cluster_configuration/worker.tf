@@ -91,10 +91,9 @@ resource "null_resource" "worker-cert" {
 module "worker-config" {
   source = "../kubeconfig"
 
-  name            = "worker"
   username        = "system:node:worker"
   CLUSTER_ADDRESS = var.KUBERNETES_PUBLIC_ADDRESS
-  ca              = null_resource.ca-cert.triggers.content
+  ca              = tls_self_signed_cert.ca.cert_pem
   cert            = tls_locally_signed_cert.worker.*.cert_pem
   key             = tls_private_key.worker.*.private_key_pem
 }

@@ -7,8 +7,7 @@ Implement Kubernetes the Hard Way with Terraform on AWS
 
 ## Usage
 
-Must be run with no parallelism:
 
 ```
-terraform apply -parallelism=1
+terraform apply
 ```

@@ -28,10 +28,9 @@ resource "tls_locally_signed_cert" "kube-controller-manager" {
 module "kube-controller-manager-config" {
   source = "../kubeconfig"
 
-  name            = "kube-controller-manager"
   username        = "system:kube-controller-manager"
   CLUSTER_ADDRESS = "127.0.0.1"
-  ca              = null_resource.ca-cert.triggers.content
+  ca              = tls_self_signed_cert.ca.cert_pem
   cert            = [tls_locally_signed_cert.kube-controller-manager.cert_pem]
   key             = [tls_private_key.kube-controller-manager.private_key_pem]
 }

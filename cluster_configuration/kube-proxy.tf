@@ -28,10 +28,9 @@ resource "tls_locally_signed_cert" "kube-proxy" {
 module "kube-proxy-config" {
   source = "../kubeconfig"
 
-  name            = "kube-proxy"
   username        = "system:kube-proxy"
   CLUSTER_ADDRESS = var.KUBERNETES_PUBLIC_ADDRESS
-  ca              = null_resource.ca-cert.triggers.content
+  ca              = tls_self_signed_cert.ca.cert_pem
   cert            = [tls_locally_signed_cert.kube-proxy.cert_pem]
   key             = [tls_private_key.kube-proxy.private_key_pem]
 }
