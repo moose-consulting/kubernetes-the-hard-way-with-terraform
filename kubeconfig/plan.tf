@@ -7,11 +7,11 @@ data "template_file" "kubeconfig" {
 
   template = "${file("${path.root}/templates/kubeconfig")}"
   vars = {
-    USERNAME = local.multiple ? join("", [var.username, "-", tostring(count.index)]) : var.username
+    USERNAME        = local.multiple ? join("", [var.username, "-", tostring(count.index)]) : var.username
     CLUSTER_ADDRESS = var.CLUSTER_ADDRESS
-    CA_CERT = base64encode(var.ca)
-    CLIENT_CERT = base64encode(var.cert[count.index])
-    CLIENT_KEY = base64encode(var.key[count.index])
+    CA_CERT         = base64encode(var.ca)
+    CLIENT_CERT     = base64encode(var.cert[count.index])
+    CLIENT_KEY      = base64encode(var.key[count.index])
   }
 }
 

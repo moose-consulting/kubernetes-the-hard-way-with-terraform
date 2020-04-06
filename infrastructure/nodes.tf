@@ -131,7 +131,7 @@ resource "aws_instance" "controller" {
 }
 
 resource "null_resource" "set_controller_hostname" {
-  count      = var.n_controllers
+  count = var.n_controllers
 
   connection {
     type        = "ssh"

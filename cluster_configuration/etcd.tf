@@ -53,8 +53,8 @@ resource "null_resource" "start-etcd" {
 
   triggers = {
     ca-cert         = tls_self_signed_cert.ca.cert_pem
-    kubernetes-cert = tls_locally_signed_cert.kubernetes.cert_pem
-    kubernetes-key  = tls_private_key.kubernetes.private_key_pem
+    kubernetes-cert = sha256(tls_locally_signed_cert.kubernetes.cert_pem)
+    kubernetes-key  = sha256(tls_private_key.kubernetes.private_key_pem)
     systemd         = data.template_file.etcd-systemd[count.index].rendered
   }
 

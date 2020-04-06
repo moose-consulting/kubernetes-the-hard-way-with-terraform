@@ -39,7 +39,7 @@ resource "null_resource" "kube-scheduler-config-deployment" {
   count = length(var.cluster_ips.controllers.public)
 
   triggers = {
-    key = module.kube-scheduler-config.kubeconfig[0]
+    key = sha256(module.kube-scheduler-config.kubeconfig[0])
   }
 
   connection {
@@ -108,7 +108,7 @@ resource "null_resource" "configure-kube-scheduler" {
   triggers = {
     systemd               = data.template_file.kube-scheduler-systemd.rendered
     yaml                  = data.template_file.kube-scheduler-yaml.rendered
-    kube-scheduler-config = module.kube-scheduler-config.kubeconfig[0]
+    kube-scheduler-config = sha256(module.kube-scheduler-config.kubeconfig[0])
   }
 
   connection {

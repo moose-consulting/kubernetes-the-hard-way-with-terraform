@@ -59,18 +59,6 @@ resource "null_resource" "start-kube-services" {
   }
 }
 
-resource "null_resource" "wait-kube-apiserver" {
-  depends_on = [
-    null_resource.start-kube-services,
-    local_file.ca-cert
-  ]
-
-  provisioner "local-exec" {
-    working_dir = path.root
-    command     = "until $(curl --cacert output/ca.pem --output /dev/null --silent --fail --max-time 5 https://${var.KUBERNETES_PUBLIC_ADDRESS}:6443/healthz); do printf '.'; sleep 5; done"
-  }
-}
-
 resource "null_resource" "start-worker-services" {
   count = length(var.cluster_ips.workers.public)
 
@@ -105,5 +93,51 @@ resource "null_resource" "start-worker-services" {
       "sudo systemctl start containerd kubelet kube-proxy",
       "sleep 10"
     ]
+  }
+}
+
+resource "null_resource" "wait-kube-apiserver" {
+  depends_on = [
+    null_resource.start-kube-services,
+    local_file.ca-cert,
+    null_resource.start-worker-services
+  ]
+
+  provisioner "local-exec" {
+    working_dir = path.root
+    command     = "until $(curl --cacert output/ca.pem --output /dev/null --silent --fail --max-time 5 https://${var.KUBERNETES_PUBLIC_ADDRESS}:6443/healthz); do printf '.'; sleep 5; done"
+  }
+}
+
+resource "null_resource" "kubelet_cluster_role" {
+  depends_on = [
+    null_resource.wait-kube-apiserver,
+  ]
+
+  provisioner "local-exec" {
+    working_dir = path.root
+    command     = "kubectl --kubeconfig admin.kubeconfig apply -f templates/kube-apiserver-to-kubelet.cluster_role"
+  }
+}
+
+resource "null_resource" "kubelet_cluster_role_binding" {
+  depends_on = [
+    null_resource.kubelet_cluster_role
+  ]
+
+  provisioner "local-exec" {
+    working_dir = path.root
+    command     = "kubectl --kubeconfig admin.kubeconfig apply -f templates/kubernetes.cluster_role_binding"
+  }
+}
+
+resource "null_resource" "coredns" {
+  depends_on = [
+    null_resource.kubelet_cluster_role_binding
+  ]
+
+  provisioner "local-exec" {
+    working_dir = path.root
+    command     = "kubectl --kubeconfig admin.kubeconfig apply -f https://storage.googleapis.com/kubernetes-the-hard-way/coredns.yaml"
   }
 }

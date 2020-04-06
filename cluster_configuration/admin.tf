@@ -39,7 +39,7 @@ resource "null_resource" "admin-config-deployment" {
   count = length(var.cluster_ips.controllers.public)
 
   triggers = {
-    key = module.admin-config.kubeconfig[0]
+    key = sha256(module.admin-config.kubeconfig[0])
   }
 
   connection {

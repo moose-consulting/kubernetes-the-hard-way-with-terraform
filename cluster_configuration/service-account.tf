@@ -29,7 +29,7 @@ resource "null_resource" "service-account-key" {
   count = length(var.cluster_ips.controllers.public)
 
   triggers = {
-    key = tls_private_key.service-account.private_key_pem
+    key = sha256(tls_private_key.service-account.private_key_pem)
   }
 
   connection {
@@ -56,7 +56,7 @@ resource "null_resource" "service-account-cert" {
   count = length(var.cluster_ips.controllers.public)
 
   triggers = {
-    key = tls_locally_signed_cert.service-account.cert_pem
+    key = sha256(tls_locally_signed_cert.service-account.cert_pem)
   }
 
   connection {

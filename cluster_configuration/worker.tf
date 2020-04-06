@@ -38,7 +38,7 @@ resource "null_resource" "worker-key" {
   count = length(var.cluster_ips.workers.public)
 
   triggers = {
-    key = tls_private_key.worker[count.index].private_key_pem
+    key = sha256(tls_private_key.worker[count.index].private_key_pem)
   }
 
   connection {
@@ -65,7 +65,7 @@ resource "null_resource" "worker-cert" {
   count = length(var.cluster_ips.workers.public)
 
   triggers = {
-    key = tls_locally_signed_cert.worker[count.index].cert_pem
+    key = sha256(tls_locally_signed_cert.worker[count.index].cert_pem)
   }
 
   connection {
@@ -102,7 +102,7 @@ resource "null_resource" "worker-config-deployment" {
   count = length(var.cluster_ips.workers.public)
 
   triggers = {
-    key = module.worker-config.kubeconfig[count.index]
+    key = sha256(module.worker-config.kubeconfig[count.index])
   }
 
   connection {

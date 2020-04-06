@@ -39,7 +39,7 @@ resource "null_resource" "kube-proxy-config-deployment" {
   count = length(var.cluster_ips.workers.public)
 
   triggers = {
-    key = module.kube-proxy-config.kubeconfig[0]
+    key = sha256(module.kube-proxy-config.kubeconfig[0])
   }
 
   connection {

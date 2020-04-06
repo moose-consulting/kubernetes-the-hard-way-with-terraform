@@ -43,7 +43,7 @@ resource "null_resource" "kubernetes-key" {
   count = length(var.cluster_ips.controllers.public)
 
   triggers = {
-    key = tls_private_key.kubernetes.private_key_pem
+    key = sha256(tls_private_key.kubernetes.private_key_pem)
   }
 
   connection {
@@ -72,7 +72,7 @@ resource "null_resource" "kubernetes-cert" {
   count = length(var.cluster_ips.controllers.public)
 
   triggers = {
-    key = tls_locally_signed_cert.kubernetes.cert_pem
+    key = sha256(tls_locally_signed_cert.kubernetes.cert_pem)
   }
 
   connection {

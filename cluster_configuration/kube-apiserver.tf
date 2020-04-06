@@ -45,11 +45,11 @@ resource "null_resource" "configure-kube-apiserver" {
 
   triggers = {
     ca-cert              = tls_self_signed_cert.ca.cert_pem
-    kubernetes-cert      = tls_locally_signed_cert.kubernetes.cert_pem
-    kubernetes-key       = tls_private_key.kubernetes.private_key_pem
+    kubernetes-cert      = sha256(tls_locally_signed_cert.kubernetes.cert_pem)
+    kubernetes-key       = sha256(tls_private_key.kubernetes.private_key_pem)
     systemd              = data.template_file.kube-apiserver-systemd[count.index].rendered
-    encryption-config    = data.template_file.encryption-config.rendered
-    service-account-cert = tls_locally_signed_cert.service-account.cert_pem
+    encryption-config    = sha256(data.template_file.encryption-config.rendered)
+    service-account-cert = sha256(tls_locally_signed_cert.service-account.cert_pem)
   }
 
   connection {

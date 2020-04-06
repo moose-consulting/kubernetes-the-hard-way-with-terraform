@@ -39,7 +39,7 @@ resource "null_resource" "kube-controller-manager-config-deployment" {
   count = length(var.cluster_ips.controllers.public)
 
   triggers = {
-    key = module.kube-controller-manager-config.kubeconfig[0]
+    key = sha256(module.kube-controller-manager-config.kubeconfig[0])
   }
 
   connection {
@@ -103,10 +103,10 @@ resource "null_resource" "configure-kube-controller-manager" {
 
   triggers = {
     ca-cert                        = tls_self_signed_cert.ca.cert_pem
-    ca-key                         = tls_private_key.ca.private_key_pem
+    ca-key                         = sha256(tls_private_key.ca.private_key_pem)
     systemd                        = data.template_file.kube-controller-manager-systemd.rendered
-    service-account-key            = tls_private_key.service-account.private_key_pem
-    kube-controller-manager-config = module.kube-controller-manager-config.kubeconfig[0]
+    service-account-key            = sha256(tls_private_key.service-account.private_key_pem)
+    kube-controller-manager-config = sha256(module.kube-controller-manager-config.kubeconfig[0])
   }
 
   connection {

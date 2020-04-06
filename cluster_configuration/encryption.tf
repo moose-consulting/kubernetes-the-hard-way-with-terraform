@@ -15,7 +15,7 @@ resource "null_resource" "encryption-key-deployment" {
   count = length(var.cluster_ips.controllers.public)
 
   triggers = {
-    key = data.template_file.encryption-config.rendered
+    key = sha256(data.template_file.encryption-config.rendered)
   }
 
   connection {

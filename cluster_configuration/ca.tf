@@ -32,7 +32,7 @@ resource "null_resource" "controller-ca-key" {
   count = length(var.cluster_ips.controllers.public)
 
   triggers = {
-    key = tls_private_key.ca.private_key_pem
+    key = sha256(tls_private_key.ca.private_key_pem)
   }
 
   connection {
