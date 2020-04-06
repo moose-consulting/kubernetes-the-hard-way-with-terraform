@@ -91,7 +91,7 @@ resource "null_resource" "install-kube-scheduler" {
 
   provisioner "remote-exec" {
     inline = [
-      "wget https://storage.googleapis.com/kubernetes-release/release/v1.15.3/bin/linux/amd64/kube-scheduler",
+      "wget https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/linux/amd64/kube-scheduler",
       "chmod +x kube-scheduler",
       "sudo mv kube-scheduler /usr/local/bin/",
     ]

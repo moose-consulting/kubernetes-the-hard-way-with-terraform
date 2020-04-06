@@ -138,6 +138,6 @@ resource "null_resource" "coredns" {
 
   provisioner "local-exec" {
     working_dir = path.root
-    command     = "kubectl --kubeconfig admin.kubeconfig apply -f https://storage.googleapis.com/kubernetes-the-hard-way/coredns.yaml"
+    command     = "kubectl --kubeconfig admin.kubeconfig apply -f templates/coredns.yaml"
   }
 }

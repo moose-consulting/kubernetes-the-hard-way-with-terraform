@@ -84,7 +84,7 @@ resource "null_resource" "install-kube-controller-manager" {
 
   provisioner "remote-exec" {
     inline = [
-      "wget https://storage.googleapis.com/kubernetes-release/release/v1.15.3/bin/linux/amd64/kube-controller-manager",
+      "wget https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/linux/amd64/kube-controller-manager",
       "chmod +x kube-controller-manager",
       "sudo mv kube-controller-manager /usr/local/bin/",
     ]
