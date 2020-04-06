@@ -57,7 +57,10 @@ resource "kubernetes_cluster_role_binding" "system-kube-apiserver" {
 }
 
 resource "null_resource" "coredns" {
-  depends_on = [kubernetes_cluster_role_binding.system-kube-apiserver]
+  depends_on = [
+    null_resource.start-worker-services,
+    null_resource.wait-kube-apiserver
+  ]
 
   provisioner "local-exec" {
     working_dir = path.root

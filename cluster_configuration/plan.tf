@@ -67,7 +67,7 @@ resource "null_resource" "wait-kube-apiserver" {
 
   provisioner "local-exec" {
     working_dir = path.root
-    command     = "until $(curl --cacert output/ca.pem --output /dev/null --silent --fail https://${var.KUBERNETES_PUBLIC_ADDRESS}:6443/healthz); do printf '.'; sleep 5; done"
+    command     = "until $(curl --cacert output/ca.pem --output /dev/null --silent --fail --max-time 5 https://${var.KUBERNETES_PUBLIC_ADDRESS}:6443/healthz); do printf '.'; sleep 5; done"
   }
 }
 

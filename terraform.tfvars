@@ -1,6 +1,6 @@
 region                   = "us-east-2"
 zone                     = "us-east-2a"
-n_workers                = "1"
-n_controllers            = "1"
+n_workers                = "3"
+n_controllers            = "3"
 worker_instance_type     = "t2.small"
 controller_instance_type = "t2.small"

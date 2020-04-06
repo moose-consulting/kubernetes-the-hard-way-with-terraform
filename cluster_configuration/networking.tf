@@ -40,6 +40,7 @@ resource "null_resource" "networking" {
 
   provisioner "remote-exec" {
     inline = [
+      "sudo mkdir -p /etc/cni/net.d",
       "sudo cp /home/ubuntu/10-bridge.conf /etc/cni/net.d/10-bridge.conf",
       "sudo cp /home/ubuntu/99-loopback.conf /etc/cni/net.d/99-loopback.conf",
     ]

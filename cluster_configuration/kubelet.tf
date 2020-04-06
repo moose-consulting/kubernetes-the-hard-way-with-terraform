@@ -41,6 +41,7 @@ resource "null_resource" "kubelet-config" {
 
   provisioner "remote-exec" {
     inline = [
+      "sudo mkdir -p /var/lib/kubelet",
       "sudo cp /home/ubuntu/kubelet.service /etc/systemd/system/kubelet.service",
       "sudo cp /home/ubuntu/kubelet-config.yaml /var/lib/kubelet/kubelet-config.yaml",
     ]

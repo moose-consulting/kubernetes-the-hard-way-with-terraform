@@ -128,6 +128,11 @@ resource "aws_instance" "controller" {
     volume_size = 200
   }
 
+}
+
+resource "null_resource" "set_controller_hostname" {
+  count      = var.n_controllers
+
   connection {
     type        = "ssh"
     user        = "ubuntu"
