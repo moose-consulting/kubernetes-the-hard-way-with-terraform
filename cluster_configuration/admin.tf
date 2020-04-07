@@ -57,5 +57,5 @@ resource "null_resource" "admin-config-deployment" {
 
 resource "local_file" "admin-config" {
   content  = module.admin-config.kubeconfig[0]
-  filename = "${path.root}/admin.kubeconfig"
+  filename = "${path.root}/${terraform.workspace}.kubeconfig"
 }
