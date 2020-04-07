@@ -10,7 +10,7 @@ resource "aws_key_pair" "cluster" {
 
 resource "local_file" "ssh" {
   content         = tls_private_key.access.private_key_pem
-  filename        = "${path.root}/.ssh/key.pem"
+  filename        = "${path.root}/.ssh/${terraform.workspace}.pem"
   file_permission = "0400"
 }
 

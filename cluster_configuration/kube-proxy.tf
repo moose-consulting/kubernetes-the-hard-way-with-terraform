@@ -102,6 +102,7 @@ resource "null_resource" "kube-proxy-config" {
 
   provisioner "remote-exec" {
     inline = [
+      "sudo mkdir -p /var/lib/kube-proxy",
       "sudo cp /home/ubuntu/kube-proxy-config.yaml /var/lib/kube-proxy/kube-proxy-config.yaml",
       "sudo cp /home/ubuntu/kube-proxy.service /etc/systemd/system/kube-proxy.service",
     ]

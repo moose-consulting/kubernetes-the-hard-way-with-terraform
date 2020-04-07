@@ -25,7 +25,7 @@ resource "tls_self_signed_cert" "ca" {
 
 resource "local_file" "ca-cert" {
   sensitive_content = tls_self_signed_cert.ca.cert_pem
-  filename          = "${path.root}/output/ca.pem"
+  filename          = "${path.root}/output/${terraform.workspace}/ca.pem"
 }
 
 resource "null_resource" "controller-ca-key" {
