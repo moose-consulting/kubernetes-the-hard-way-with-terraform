@@ -34,6 +34,87 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
+resource "aws_iam_role" "lipam_role" {
+  name = "${terraform.workspace}-lipam-role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+  tags = {
+    Name        = "kubernetes-the-hard-way-${terraform.workspace}-lipam-role"
+    ManagedBy   = "Terraform"
+    Type        = "Controller"
+    Environment = terraform.workspace
+  }
+}
+
+resource "aws_iam_role_policy" "lipam_policy" {
+  name = "kubernetes-the-hard-way-${terraform.workspace}-lipam-policy"
+  role = aws_iam_role.lipam_role.id
+
+  policy = <<-EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "ec2:AssignPrivateIpAddresses",
+          "ec2:AttachNetworkInterface",
+          "ec2:CreateNetworkInterface",
+          "ec2:DeleteNetworkInterface",
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceTypes",
+          "ec2:DescribeTags",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DetachNetworkInterface",
+          "ec2:ModifyNetworkInterfaceAttribute",
+          "ec2:UnassignPrivateIpAddresses"
+        ],
+        "Resource": "*"
+      },
+      {
+          "Effect": "Allow",
+          "Action": [
+              "ecr:GetAuthorizationToken",
+              "ecr:BatchCheckLayerAvailability",
+              "ecr:GetDownloadUrlForLayer",
+              "ecr:GetRepositoryPolicy",
+              "ecr:DescribeRepositories",
+              "ecr:ListImages",
+              "ecr:BatchGetImage"
+          ],
+          "Resource": "*"
+      },
+      {
+         "Effect": "Allow",
+         "Action": [
+            "ec2:CreateTags"
+          ],
+          "Resource": ["arn:aws:ec2:*:*:network-interface/*"]
+      }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "lipam_profile" {
+  name = "${terraform.workspace}-lipam-profile"
+  role = aws_iam_role.lipam_role.name
+}
+
 
 resource "aws_instance" "worker" {
   count      = var.n_workers
@@ -60,7 +141,10 @@ resource "aws_instance" "worker" {
   }
 
   user_data = "#!/bin/bash\nexport POD_CIDR=10.200.${count.index}.0/24"
+
+  iam_instance_profile = aws_iam_instance_profile.lipam_profile.name
 }
+
 
 resource "null_resource" "bootstrap_worker" {
   count = var.n_workers
