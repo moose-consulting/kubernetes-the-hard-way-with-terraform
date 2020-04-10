@@ -62,6 +62,32 @@ resource "null_resource" "kube-proxy-config-deployment" {
   }
 }
 
+resource "null_resource" "kube-proxy-config-deployment-controller" {
+  count = length(var.cluster_ips.controllers.public)
+
+  triggers = {
+    key = sha256(module.kube-proxy-config.kubeconfig[0])
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = var.cluster_ips.controllers.public[count.index]
+    private_key = var.ssh_key
+  }
+
+  provisioner "file" {
+    content     = module.kube-proxy-config.kubeconfig[0]
+    destination = "/home/ubuntu/kube-proxy.kubeconfig"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /var/lib/kube-proxy",
+      "sudo cp /home/ubuntu/kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig"
+    ]
+  }
+}
 
 data "template_file" "kube-proxy-config-yaml" {
   template = "${file("${path.root}/templates/kube-proxy-config.yaml")}"
@@ -87,6 +113,40 @@ resource "null_resource" "kube-proxy-config" {
     type        = "ssh"
     user        = "ubuntu"
     host        = var.cluster_ips.workers.public[count.index]
+    private_key = var.ssh_key
+  }
+
+  provisioner "file" {
+    content     = data.template_file.kube-proxy-config-yaml.rendered
+    destination = "/home/ubuntu/kube-proxy-config.yaml"
+  }
+
+  provisioner "file" {
+    content     = data.template_file.kube-proxy-service.rendered
+    destination = "/home/ubuntu/kube-proxy.service"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /var/lib/kube-proxy",
+      "sudo cp /home/ubuntu/kube-proxy-config.yaml /var/lib/kube-proxy/kube-proxy-config.yaml",
+      "sudo cp /home/ubuntu/kube-proxy.service /etc/systemd/system/kube-proxy.service",
+    ]
+  }
+}
+
+resource "null_resource" "kube-proxy-config-controller" {
+  count = length(var.cluster_ips.controllers.public)
+
+  triggers = {
+    kube-proxy-config-yaml = data.template_file.kube-proxy-config-yaml.rendered
+    kube-proxy-service     = data.template_file.kube-proxy-service.rendered
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = var.cluster_ips.controllers.public[count.index]
     private_key = var.ssh_key
   }
 

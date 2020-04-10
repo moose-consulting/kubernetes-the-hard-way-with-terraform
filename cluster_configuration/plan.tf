@@ -32,13 +32,17 @@ resource "null_resource" "start-kube-services" {
     null_resource.install-kube-controller-manager,
     null_resource.configure-kube-controller-manager,
     null_resource.install-kube-scheduler,
-    null_resource.configure-kube-scheduler
+    null_resource.configure-kube-scheduler,
+    null_resource.kube-proxy-config-controller,
+    null_resource.kube-proxy-config-deployment-controller
   ]
 
   triggers = {
     kube-apiserver          = null_resource.configure-kube-apiserver[count.index].id
     kube-controller-manager = null_resource.configure-kube-controller-manager[count.index].id
-    kube-scheduler          = null_resource.configure-kube-scheduler[count.index].id
+    kube-scheduler          = null_resource.configure-kube-scheduler[count.index].id,
+    kube-proxy              = null_resource.kube-proxy-config-controller[count.index].id
+    kube-proxy-kubeconfig   = null_resource.kube-proxy-config-deployment-controller[count.index].id
   }
 
   connection {
@@ -51,9 +55,9 @@ resource "null_resource" "start-kube-services" {
   provisioner "remote-exec" {
     inline = [
       "sudo systemctl daemon-reload",
-      "sudo systemctl stop kube-apiserver kube-controller-manager kube-scheduler",
-      "sudo systemctl enable kube-apiserver kube-controller-manager kube-scheduler",
-      "sudo systemctl start kube-apiserver kube-controller-manager kube-scheduler",
+      "sudo systemctl stop kube-apiserver kube-controller-manager kube-scheduler kube-proxy",
+      "sudo systemctl enable kube-apiserver kube-controller-manager kube-scheduler kube-proxy",
+      "sudo systemctl start kube-apiserver kube-controller-manager kube-scheduler kube-proxy",
       "sleep 10"
     ]
   }
