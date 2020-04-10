@@ -9,8 +9,11 @@ data "template_file" "kubelet-config" {
 }
 
 data "template_file" "kubelet-service" {
+  count = length(var.cluster_ips.workers.public)
+
   template = "${file("${path.root}/templates/kubelet.service")}"
   vars = {
+    PRIVATE_IP = var.cluster_ips.workers.private[count.index]
   }
 }
 
@@ -19,7 +22,7 @@ resource "null_resource" "kubelet-config" {
 
   triggers = {
     config  = data.template_file.kubelet-config[count.index].rendered
-    service = data.template_file.kubelet-service.rendered
+    service = data.template_file.kubelet-service[count.index].rendered
   }
 
   connection {
@@ -35,7 +38,7 @@ resource "null_resource" "kubelet-config" {
   }
 
   provisioner "file" {
-    content     = data.template_file.kubelet-service.rendered
+    content     = data.template_file.kubelet-service[count.index].rendered
     destination = "/home/ubuntu/kubelet.service"
   }
 

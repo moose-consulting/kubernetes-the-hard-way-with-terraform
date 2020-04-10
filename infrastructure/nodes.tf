@@ -39,6 +39,7 @@ resource "aws_instance" "worker" {
   count      = var.n_workers
   depends_on = [aws_internet_gateway.gw]
 
+  source_dest_check           = false
   ami                         = data.aws_ami.ubuntu.id
   availability_zone           = var.zone
   vpc_security_group_ids      = [aws_security_group.cluster.id]
@@ -108,6 +109,7 @@ resource "aws_instance" "controller" {
   count      = var.n_controllers
   depends_on = [aws_internet_gateway.gw]
 
+  source_dest_check           = false
   ami                         = data.aws_ami.ubuntu.id
   availability_zone           = var.zone
   vpc_security_group_ids      = [aws_security_group.cluster.id]
@@ -130,7 +132,7 @@ resource "aws_instance" "controller" {
 
 }
 
-resource "null_resource" "set_controller_hostname" {
+resource "null_resource" "bootstrap_controller" {
   count = var.n_controllers
 
   connection {
@@ -143,6 +145,9 @@ resource "null_resource" "set_controller_hostname" {
   provisioner "remote-exec" {
     inline = [
       "sudo hostnamectl set-hostname controller-${count.index}",
+      "wget https://storage.googleapis.com/kubernetes-release/release/v1.15.3/bin/linux/amd64/kube-proxy",
+      "chmod +x kube-proxy",
+      "sudo mv kube-proxy /usr/local/bin/",
     ]
   }
 }

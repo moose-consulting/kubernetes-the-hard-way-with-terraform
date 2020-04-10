@@ -53,6 +53,7 @@ metadata:
 data:
   Corefile: |
     .:53 {
+        log
         errors
         health
         ready
@@ -60,6 +61,7 @@ data:
           pods insecure
           fallthrough in-addr.arpa ip6.arpa
         }
+        forward . /etc/resolv.conf
         prometheus :9153
         cache 30
         loop
